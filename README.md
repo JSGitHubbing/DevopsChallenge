@@ -4,6 +4,10 @@ Onescript environment deploy
 ### Installing 🔧
 Work in progress ... 🔧
 
+for Azure VM: 
+- Open Powershell 
+- run: SetExecutionPolicy Unirestricted
+- run your ps file
 
 ## Authors ✒️
 [Contributor list](https://github.com/JSGitHubbing/DevopsChallenge/contributors)
