@@ -1,0 +1,69 @@
+version: "3.5"
+
+networks:
+    default:
+        driver: bridge
+        name: devops-net
+        
+services:
+    jenkins:
+        container_name: jenkins
+        environment:
+            - JAVA_OPTS=-Dhudson.model.DirectoryBrowserSupport.CSP="sandbox allow-scripts; script-src 'unsafe-inline'; style-src 'unsafe-inline';" # Allow inline JavaScript
+            - PLUGINS_FORCE_UPGRADE=true # Enforce upgrade of native plugins at startup
+        image: jenkins/jenkins:lts
+        # networks:
+        #     default:
+        #         aliases:
+        #             - jenkins.in.docker
+        ports:
+            - "8081:8080"
+            - "50000:50000"
+            - "443:8443"
+        restart: unless-stopped
+        # user: 1001:900 # jenkins:docker as the use need to be able to start containers
+        volumes:
+            # - jenkins_passwd:/etc/passwd:ro # User can be found/mapped
+            - jenkins_hosts:/home/jenkins:rw # Allows to write .ssh/known_hosts
+            - jenkins_home:/var/jenkins_home:rw # Workspace home
+            - jenkins_run/:/var/run/docker.sock:ro # Jenkins allowed to start/stop containers
+            
+    sonarqube:
+        container_name: sonarqube
+        image: sonarqube:7.9-community
+        networks:
+            default:
+                aliases:
+                    - sonarqube.in.local
+        ports:
+            - "9000:9000"
+        restart: unless-stopped
+        stop_grace_period: 10m
+        volumes:
+            - sonarqube_conf:/opt/sonarqube/conf
+            - sonarqube_data:/opt/sonarqube/data
+            - sonarqube_extensions:/opt/sonarqube/extensions
+            - sonarqube_logs:/opt/sonarqube/logs
+            - sonarqube_temp:/opt/sonarqube/temp    
+    gogs:
+      image: gogs/gogs
+      ports:
+        - "3000:3000"
+      volumes:
+        - gogs_data:/data
+      networks:
+            default:
+                aliases:
+                    - gogs.in.local
+volumes:
+    jenkins_passwd:
+    jenkins_home:
+    jenkins_hosts:
+    jenkins_run:
+    sonarqube_conf:
+    sonarqube_data:
+    sonarqube_extensions:
+    sonarqube_logs:
+    sonarqube_temp:
+    gogs_data:
+            
