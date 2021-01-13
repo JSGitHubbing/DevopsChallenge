@@ -13,9 +13,11 @@ for Azure VM:
 You probably have found one of the following issues:
 
 Q: Git doesn't allow me to commit the files due to the long name.
+
 A: You can solve it executing *git config --system core.longpaths true*
 
 Q: How can I log in in Jenkins?
+
 A: Use the default username/password *admin/password1*
 
 ## Authors ✒️
