@@ -3,13 +3,14 @@ version: "3.5"
 services:
     jenkins:
         container_name: jenkins
-        image: jenkins/jenkins:lts
+        image: devops_jenkins
         ports:
             - "8081:8080"
         volumes:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
+            - .\docker_volumes\jenkins_git_repo:/home/jenkins_git_repo
             
     sonarqube:
         container_name: sonarqube
