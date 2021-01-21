@@ -18,7 +18,7 @@ A: You can solve it executing *git config --system core.longpaths true*
 
 Q: How can I log in in Jenkins?
 
-A: Use the default username/password *admin/password1*
+A: Use the default username/password *admin/admin*, you can see the configuration in the [Dockerfile](images_dockerfiles/Dockerfile.jenkins)
 
 ## Authors ✒️
 [Contributor list](https://github.com/JSGitHubbing/DevopsChallenge/contributors)
