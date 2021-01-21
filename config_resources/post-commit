@@ -1,0 +1,3 @@
+#!bin/sh
+#
+curl -X POST "http://localhost:8081/git/notifyCommit?url=file:///home/jenkins_git_repo"

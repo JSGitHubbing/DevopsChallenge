@@ -10,6 +10,11 @@ function Refresh-Environment-Variables {
 
 }
 
+$baseFolder = Get-Location
+$dockerVolumesFolder = "$baseFolder/docker_volumes"
+$projectRepo = "$baseFolder/docker_volumes/jenkins_git_repo"
+$configResourcesFolder = "$baseFolder/config_resources"
+
 Write-Host "Installing Chocolatey" -ForegroundColor Magenta
 $testchoco = powershell choco -v
 if(-not($testchoco)) {
@@ -86,8 +91,9 @@ Write-Host "Installing WSL" -ForegroundColor Magenta
 $testwsl = powershell wsl -l
 if(-not($testwsl)) {
 	Invoke-WebRequest -Uri "https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi" -OutFile "wsl_update_x64.msi"
+	cd $baseFolder
 	.\wsl_update_x64.msi /quiet
-	rm .\wsl_update_x64.msi
+	rm "$baseFolder\wsl_update_x64.msi"
 }
 else {
 	Write-Host "WSL is already installed" -ForegroundColor Green
@@ -103,32 +109,39 @@ Print-Block
 ##Prepare images
 
 Write-Host "Preparing Docker images" -ForegroundColor Magenta
-#Copy-Item -Path "./images_dockerfiles/Dockerfile_vscode" -Destination "./my_visual_studio_code_project/.devcontainer/Dockerfile"
+#Copy-Item -Path "$baseFolder/images_dockerfiles/Dockerfile_vscode" -Destination "$baseFolder/my_visual_studio_code_project/.devcontainer/Dockerfile"
 
-docker build -t devops_jenkins -f ./images_dockerfiles/Dockerfile.jenkins .
+docker build -t devops_jenkins -f "$baseFolder/images_dockerfiles/Dockerfile.jenkins" .
 Print-Block
 
 ## Prepare user project
 Write-Host "Preparing User project repository" -ForegroundColor Magenta
 Write-Host "Creating docker_volumes/jenkins_git_repo folder"
 
-if (-Not (Test-Path docker_volumes -PathType leaf))
+if (-Not (Test-Path $dockerVolumesFolder))
 {
-	mkdir docker_volumes
+	mkdir $dockerVolumesFolder
 }
-cd docker_volumes
-
-if (-Not (Test-Path jenkins_git_repo -PathType leaf))
+if (-Not (Test-Path $projectRepo))
 {	
-	mkdir jenkins_git_repo
+	mkdir $projectRepo
 }
-cd jenkins_git_repo
+
+cd $projectRepo
 
 Write-Host "Starting git"
 git init
 Write-Host "Pulling repository"
-git pull https://github.com/JSGitHubbing/DevopsChallenge
+git clone https://github.com/JSGitHubbing/dummy-repo.git
+Copy-Item -Path "$configResourcesFolder/post-commit" -Destination "$projectRepo/.git/hooks"
 Print-Block
 
 Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
 docker-compose up -d
+cd $baseFolder
+
+
+Remove-Variable baseFolder
+Remove-Variable dockerVolumesFolder
+Remove-Variable projectRepo
+Remove-Variable configResourcesFolder
