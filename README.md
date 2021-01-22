@@ -6,7 +6,7 @@ Work in progress ... 🔧
 
 for Azure VM: 
 - Open Powershell 
-- run: SetExecutionPolicy Unirestricted
+- run: Set-ExecutionPolicy Unrestricted
 - run your ps file
 
 ### FAQ
