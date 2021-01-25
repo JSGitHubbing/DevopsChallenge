@@ -7,7 +7,8 @@ ENV JENKINS_PASS admin
 ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
 
 COPY ../config_resources/setup_jenkins.groovy /usr/share/jenkins/ref/init.groovy.d/
-COPY ../config_resources/multipipeline.xml /home/jenkins
+COPY ../config_resources/multipipeline.xml /home/jenkins/multipipeline.xml
+COPY ../config_resources/pipeline_creation.sh /home/jenkins/pipeline_creation.sh
 
 # Installing the plugins we need using the in-built install-plugins.sh script
 RUN /usr/local/bin/install-plugins.sh git matrix-auth workflow-aggregator docker-workflow blueocean credentials-binding docker-plugin

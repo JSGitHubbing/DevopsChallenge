@@ -17,4 +17,4 @@ user.save()
 jenkins.getAuthorizationStrategy().add(Jenkins.ADMINISTER, env.JENKINS_USER)
 
 jenkins.save()
-'./pipeline_creation.sh localhost:8080 ' + env.JENKINS_USER + ' ' + env.JENKINS_PASS
+'/home/jenkins/pipeline_creation.sh localhost:8080 ' + env.JENKINS_USER + ' ' + env.JENKINS_PASS
