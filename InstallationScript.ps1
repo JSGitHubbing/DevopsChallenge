@@ -39,9 +39,7 @@ function Check-Installation-Folder {
 	{
 		Write-Host "Creating and pulling config repository" -ForegroundColor Magenta
 		mkdir $InstallationFolder
-        Print-Paths
         Refresh-Paths $InstallationFolder 
-        Print-Paths
 		Set-Location $InstallationFolder
 		git init
 		git pull https://github.com/JSGitHubbing/DevopsChallenge
