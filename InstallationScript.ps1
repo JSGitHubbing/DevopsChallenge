@@ -1,6 +1,8 @@
 $BaseFolder = Get-Location
+$ScriptName = "InstallationScript.ps1"
+$Restarted = $args[0]
 $VolumesFolder = "$BaseFolder/docker_volumes"
-$ProjectRepoFolder = "$BaseFolder/docker_volumes/jenkins_git_repo"
+$ProjectRepoFolder = "$VolumesFolder/jenkins_git_repo"
 $ConfigResourcesFolder = "$BaseFolder/config_resources"
 $InstallationFolder = "$BaseFolder/devops-repository"
 $ConfigurationFile = "$ConfigResourcesFolder/installation.config"
@@ -28,144 +30,164 @@ function Check-Installation-Folder {
 	{
 		Write-Host "Creating and pulling config repository" -ForegroundColor Magenta
 		mkdir $InstallationFolder
-		cd $InstallationFolder
+		Set-Location $InstallationFolder
 		git init
 		git pull https://github.com/JSGitHubbing/DevopsChallenge
 		Print-Block
 	}
 }
 
-
-
-
-Write-Host "Installing Chocolatey" -ForegroundColor Magenta
-$TestChoco = powershell choco -v
-if(-not($TestChoco)) {
-	Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-	Write-Host "Chocolatey installation finished" -ForegroundColor Magenta
-}
-else {
-	Write-Host "Chocolatey is already installed" -ForegroundColor Green
-}
-Remove-Variable TestChoco
-Print-Block
-
-Write-Host "Installing Docker" -ForegroundColor Magenta
-$TestDocker = powershell docker -v
-$TestDockerCompose = powershell docker-compose -v
-if(-not($TestDocker) -or (-not($TestDockerCompose))) {
-	choco install docker-desktop -y
-	Write-Host "Docker installation finished" -ForegroundColor Magenta
-}
-else {
-	Write-Host "Docker-desktop is already installed" -ForegroundColor Green
-}
-Remove-Variable TestDocker
-Remove-Variable TestDockerCompose
-Print-Block
-
-Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
-$TestVSCode = powershell code -v
-if(-not($TestVSCode)) {
-	choco install vscode -y
-}
-else {
-	Write-Host "VSCode is already installed" -ForegroundColor Green
-}
-Install-VSCode-Extensions
-Write-Host "Visual Studio Code installation finished" -ForegroundColor Magenta
-Remove-Variable TestVSCode
-Print-Block
-
-Write-Host "Installing Git" -ForegroundColor Magenta
-$TestGit = powershell git --version
-if(-not($TestGit)) {
-	choco install git -y
+function Restart-Machine {
+	 ## Restart required to ensure the new installations work properly
 	Refresh-Environment-Variables
-	Write-Host "Git installation finished" -ForegroundColor Magenta
-}
-else {
-	Write-Host "Git is already installed" -ForegroundColor Green
-}
-Remove-Variable TestGit
-Print-Block
+    $Command = "%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe Set-Location $BaseFolder; $BaseFolder\$ScriptName r"
+    Set-Location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
+    New-Itemproperty . RunItOnce_DockerInstallationScript -propertytype ExpandString -value $Command
 
-Check-Installation-Folder
-Get-Content $ConfigurationFile | Foreach-Object{
-	$var = $_.Split('=')
-	New-Variable -Name $var[0] -Value $var[1]
+    Write-Host "Restart is required. The script will continue after the restarting..." -ForegroundColor Magenta
+    pause
+    shutdown /r
+    Write-Host "The script will continue after the restarting..." -ForegroundColor Magenta
+
 }
 
-Write-Host "Installing WSL" -ForegroundColor Magenta
-$TestWsl = powershell wsl -l
-if(-not($TestWsl)) {
-	Invoke-WebRequest -Uri "https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi" -OutFile "wsl_update_x64.msi"
-	cd $BaseFolder
 
-	.\wsl_update_x64.msi /quiet
-	rm "$BaseFolder\wsl_update_x64.msi"
-}
-else {
-	Write-Host "WSL is already installed" -ForegroundColor Green
-}
-Remove-Variable TestWsl
-Print-Block
-
-Write-Host "Launching Docker-Desktop" -ForegroundColor Magenta
-$IsDockerRunning = powershell Get-Process 'com.docker-proxy'
-Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-if(-not($IsDockerRunning)) {
-	$DockerStartTries = 0
-	DO {
-		$IsDockerRunning = powershell Get-Process 'com.docker-proxy'
-		Start-Sleep -Seconds $DockerTriesSeconds
-		$DockerStartTries++
-	} While (-not($IsDockerRunning) -and($DockerStartTries -le $DockerStartTriesMax))
-
-	if($DockerStartTries -gt $DockerStartTriesMax) {
-		Write-Host "ERROR: Could not start Docker before the timeout $DockerStartTriesMax tries each $DockerTriesSeconds seconds waiting." -ForegroundColor Red
-		Write-Host "Check $ConfigurationFile to have more information" -ForegroundColor Yellow
-		exit 1
+if(-not($restarted)){
+	Write-Host "Installing Chocolatey" -ForegroundColor Magenta
+    Write-Host "TESTING Chocolatey installation" -ForegroundColor Magenta
+	$TestChoco = powershell choco -v
+	if(-not($TestChoco)) {
+        Write-Host "NOT EXIST Chocolatey installation" -ForegroundColor Magenta
+        Write-Host "Installing Chocolatey" -ForegroundColor Magenta
+		Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+		Write-Host "Chocolatey installation finished" -ForegroundColor Magenta
 	}
+	else {
+		Write-Host "Chocolatey is already installed" -ForegroundColor Green
+	}
+	Remove-Variable TestChoco
+	Print-Block
+
+	Write-Host "Installing WSL" -ForegroundColor Magenta
+	$TestWsl = powershell wsl -l
+	if(-not($TestWsl)) {
+		
+        Write-Host "NOT EXIST WSL installation" -ForegroundColor Magenta
+        Write-Host "Installing WSL" -ForegroundColor Magenta
+		Invoke-WebRequest -Uri "https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi" -OutFile "wsl_update_x64.msi"
+		Set-Location $BaseFolder
+
+		.\wsl_update_x64.msi /quiet
+		rm "$BaseFolder\wsl_update_x64.msi"
+        Refresh-Environment-Variables
+	    Write-Host "WSL installation finished" -ForegroundColor Magenta
+	}
+	else {
+		Write-Host "WSL is already installed" -ForegroundColor Green
+	}
+	Remove-Variable TestWsl
+	Print-Block
+
+    Write-Host "Installing Docker" -ForegroundColor Magenta
+    Write-Host "TESTING Docker installation" -ForegroundColor Magenta
+	$TestDocker = powershell docker -v
+	$TestDockerCompose = powershell docker-compose -v
+	if(-not($TestDocker) -or (-not($TestDockerCompose))) {
+        Write-Host "NOT EXIST Docker installation" -ForegroundColor Magenta
+        Write-Host "Installing Docker" -ForegroundColor Magenta
+		choco install docker-desktop -y
+		Write-Host "Docker installation finished" -ForegroundColor Magenta
+	}
+	else {
+		Write-Host "Docker-desktop is already installed" -ForegroundColor Green
+	}
+	Remove-Variable TestDocker
+	Remove-Variable TestDockerCompose
+	Print-Block
+	Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
+    Write-Host "TESTING Visual Studio Code installation" -ForegroundColor Magenta
+	$TestVSCode = powershell code -v
+	if(-not($TestVSCode)) {
+        Write-Host "NOT EXIST Visual Studio Code installation" -ForegroundColor Magenta
+        Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
+		choco install vscode -y
+	}
+	else { 
+		Write-Host "VSCode is already installed" -ForegroundColor Green
+	    Refresh-Environment-Variables
+	    Write-Host "Installing Visual Studio Code *Extensions*" -ForegroundColor Magenta  
+	}
+	Install-VSCode-Extensions
+	Write-Host "Visual Studio Code installation finished" -ForegroundColor Magenta
+	Remove-Variable TestVSCode
+	Print-Block
+
+	Write-Host "Installing Git" -ForegroundColor Magenta
+    Write-Host "TESTING Git installation" -ForegroundColor Magenta
+	$TestGit = powershell git --version
+	if(-not($TestGit)) {
+        Write-Host "NOT EXIST Git installation" -ForegroundColor Magenta
+        Write-Host "Installing Git" -ForegroundColor Magenta
+		choco install git -y
+		Refresh-Environment-Variables
+		Write-Host "Git installation finished" -ForegroundColor Magenta
+	}
+	else {
+		Write-Host "Git is already installed" -ForegroundColor Green
+	}
+	Remove-Variable TestGit
+	Print-Block
+	Restart-Machine
 }
-Print-Block
+else {
+	Check-Installation-Folder
+	Get-Content $ConfigurationFile | Foreach-Object{
+		$var = $_.Split('=')
+		New-Variable -Name $var[0] -Value $var[1]
+	}
 
-## Prepare images
-Write-Host "Preparing Docker images" -ForegroundColor Magenta
-# Copy-Item -Path "$BaseFolder/images_dockerfiles/Dockerfile_vscode" -Destination "$BaseFolder/my_visual_studio_code_project/.devcontainer/Dockerfile"
-docker build -t devops_jenkins -f "$BaseFolder/images_dockerfiles/Dockerfile.jenkins" .
-Print-Block
+	Write-Host "Launching Docker-Desktop" -ForegroundColor Magenta
+	Start-Process -FilePath $DockerDesktopPath
+	Start-Sleep -Seconds $DockerLaunchWaitSeconds
+	Print-Block
 
-## Prepare user project
-Write-Host "Preparing User project repository" -ForegroundColor Magenta
-Write-Host "Creating docker_volumes/jenkins_git_repo folder"
-## Creating folders for the repository
-if (-Not (Test-Path $VolumesFolder))
-{
-	mkdir $VolumesFolder
+	## Prepare images
+	Write-Host "Preparing Docker images" -ForegroundColor Magenta
+	# Copy-Item -Path "$BaseFolder/images_dockerfiles/Dockerfile_vscode" -Destination "$BaseFolder/my_visual_studio_code_project/.devcontainer/Dockerfile"
+	docker build -t devops_jenkins -f "$BaseFolder/images_dockerfiles/Dockerfile.jenkins" .
+	Print-Block
 
+	## Prepare user project
+	Write-Host "Preparing User project repository" -ForegroundColor Magenta
+	Write-Host "Creating docker_volumes/jenkins_git_repo folder"
+	## Creating folders for the repository
+	if (-Not (Test-Path $VolumesFolder))
+	{
+		mkdir $VolumesFolder
+	}
+	if (-Not (Test-Path $ProjectRepoFolder))
+	{	
+		mkdir $ProjectRepoFolder
+	}
+	Set-Location $ProjectRepoFolder
+
+	## Clone repository and add Post-Commit Hook
+	Write-Host "Starting git"
+	git init
+	Write-Host "Pulling repository"
+	git pull "$ProjectRepositoryPath" > git_out.log 2>&1
+	Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFolder/.git/hooks"
+	Print-Block
+
+	## Launching containers
+	Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
+	docker-compose up -d
+	Set-Location $BaseFolder
 }
-if (-Not (Test-Path $ProjectRepoFolder))
-{	
-	mkdir $ProjectRepoFolder
-}
-cd $ProjectRepoFolder
-
-## Clone repository and add Post-Commit Hook
-Write-Host "Starting git"
-git init
-Write-Host "Pulling repository"
-git clone "$ProjectRepositoryPath"
-Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFolder/.git/hooks"
-Print-Block
-
-## Launching containers
-Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
-docker-compose up -d
-cd $BaseFolder
-
 
 Remove-Variable BaseFolder
 Remove-Variable VolumesFolder
 Remove-Variable ProjectRepoFolder
 Remove-Variable ConfigResourcesFolder
+Write-Host "Script Finished" -ForegroundColor Green
+pause
