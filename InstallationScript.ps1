@@ -1,11 +1,20 @@
-$BaseFolder = Get-Location
-$ScriptName = "InstallationScript.ps1"
-$Restarted = $args[0]
-$VolumesFolder = "$BaseFolder/docker_volumes"
-$ProjectRepoFolder = "$VolumesFolder/jenkins_git_repo"
-$ConfigResourcesFolder = "$BaseFolder/config_resources"
-$InstallationFolder = "$BaseFolder/devops-repository"
-$ConfigurationFile = "$ConfigResourcesFolder/installation.config"
+$global:BaseFolder = Get-Location
+$global:ScriptName = "InstallationScript.ps1"
+$global:Restarted = $args[0]
+$global:VolumesFolder = "$BaseFolder/docker_volumes"
+$global:ProjectRepoFolder = "$VolumesFolder/jenkins_git_repo"
+$global:ConfigResourcesFolder = "$BaseFolder/config_resources"
+$global:InstallationFolder = "$BaseFolder/devops-repository"
+$global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
+
+function Refresh-Paths {
+    param ($NewBaseFolder)
+    Set-Variable -Name "BaseFolder" -Value $NewBaseFolder -Scope Global
+    Set-Variable -Name "VolumesFolder" -Value "$BaseFolder/docker_volumes" -Scope Global
+    Set-Variable -Name "ProjectRepoFolder" -Value "$VolumesFolder/jenkins_git_repo" -Scope Global
+    Set-Variable -Name "ConfigResourcesFolder" -Value "$BaseFolder/config_resources" -Scope Global
+    Set-Variable -Name "ConfigurationFile" -Value "$ConfigResourcesFolder/installation.config" -Scope Global
+}
 
 function Print-Block {
     Write-Host ""
@@ -30,6 +39,9 @@ function Check-Installation-Folder {
 	{
 		Write-Host "Creating and pulling config repository" -ForegroundColor Magenta
 		mkdir $InstallationFolder
+        Print-Paths
+        Refresh-Paths $InstallationFolder 
+        Print-Paths
 		Set-Location $InstallationFolder
 		git init
 		git pull https://github.com/JSGitHubbing/DevopsChallenge
