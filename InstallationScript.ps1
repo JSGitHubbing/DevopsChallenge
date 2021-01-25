@@ -194,10 +194,5 @@ else {
 	docker-compose up -d
 	Set-Location $BaseFolder
 }
-
-Remove-Variable BaseFolder
-Remove-Variable VolumesFolder
-Remove-Variable ProjectRepoFolder
-Remove-Variable ConfigResourcesFolder
 Write-Host "Script Finished" -ForegroundColor Green
 pause
