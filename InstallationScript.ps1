@@ -17,7 +17,7 @@ function Refresh-Paths {
 }
 
 function Print-Block {
-    Write-Host ""
+	Write-Host ""
 	Write-Host "********************************************************" -ForegroundColor Yellow
 	Write-Host "********************************************************" -ForegroundColor Yellow
 	Write-Host ""
@@ -64,11 +64,11 @@ function Check-Installation-Folder {
 function Restart-Machine {
 	 ## Restart required to ensure the new installations work properly
 	Refresh-Environment-Variables
-    $Command = "%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe Set-Location $BaseFolder; $BaseFolder\$ScriptName -r"
-    Set-Location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
-    New-Itemproperty . RunItOnce_DockerInstallationScript -propertytype ExpandString -value $Command
+	$Command = "%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe Set-Location $BaseFolder; $BaseFolder\$ScriptName -r"
+	Set-Location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
+	New-Itemproperty . RunItOnce_DockerInstallationScript -propertytype ExpandString -value $Command
 
-    Write-Host "Restart is required. The script will continue after the restarting..." -ForegroundColor Magenta
+	Write-Host "Restart is required. The script will continue after the restarting..." -ForegroundColor Magenta
 	
 	Write-Host "Do you want to restart now? [y/n]"
 	$SelectedOption = Read-Host
@@ -117,7 +117,7 @@ function Wait-JenkinsUp {
 	}
 
 	$Tries = 1
-    $IsJenkinsUp = $false
+	$IsJenkinsUp = $false
 	DO {
 		Start-Sleep -Seconds $SecondsToWait
 		Write-Host "`rChecking if Jenkins is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow -NoNewLine 
@@ -146,7 +146,7 @@ function Wait-JenkinsUp {
 
 if(-not($restarted)){
 	Write-Host "Installing Chocolatey" -ForegroundColor Magenta
-    Write-Host "TESTING Chocolatey installation" -ForegroundColor Magenta
+	Write-Host "TESTING Chocolatey installation" -ForegroundColor Magenta
 	$TestChoco = powershell choco -v
 	if(-not($TestChoco)) {
         Write-Host "NOT EXIST Chocolatey installation" -ForegroundColor Magenta
@@ -180,8 +180,8 @@ if(-not($restarted)){
 	Remove-Variable TestWsl
 	Print-Block
 
-    Write-Host "Installing Docker" -ForegroundColor Magenta
-    Write-Host "TESTING Docker installation" -ForegroundColor Magenta
+	Write-Host "Installing Docker" -ForegroundColor Magenta
+	Write-Host "TESTING Docker installation" -ForegroundColor Magenta
 	$TestDocker = powershell docker -v
 	$TestDockerCompose = powershell docker-compose -v
 	if(-not($TestDocker) -or (-not($TestDockerCompose))) {
@@ -197,7 +197,7 @@ if(-not($restarted)){
 	Remove-Variable TestDockerCompose
 	Print-Block
 	Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
-    Write-Host "TESTING Visual Studio Code installation" -ForegroundColor Magenta
+	Write-Host "TESTING Visual Studio Code installation" -ForegroundColor Magenta
 	$TestVSCode = powershell code -v
 	if(-not($TestVSCode)) {
         Write-Host "NOT EXIST Visual Studio Code installation" -ForegroundColor Magenta
@@ -215,7 +215,7 @@ if(-not($restarted)){
 	Print-Block
 
 	Write-Host "Installing Git" -ForegroundColor Magenta
-    Write-Host "TESTING Git installation" -ForegroundColor Magenta
+	Write-Host "TESTING Git installation" -ForegroundColor Magenta
 	$TestGit = powershell git --version
 	if(-not($TestGit)) {
         Write-Host "NOT EXIST Git installation" -ForegroundColor Magenta
@@ -274,7 +274,7 @@ else {
 	# Check if jenkins is running
 	Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
 	# Create the pipeline
-    & $GitShPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
+	& $GitShPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
 }
 Write-Host "Script Finished" -ForegroundColor Green
 pause
