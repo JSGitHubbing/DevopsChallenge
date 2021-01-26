@@ -1,6 +1,6 @@
 $global:BaseFolder = Get-Location
 $global:ScriptName = "InstallationScript.ps1"
-$global:Restarted = $args[0]
+$global:Restarted = $args[0] -eq '-r'
 $global:VolumesFolder = "$BaseFolder/docker_volumes"
 $global:ProjectRepoFolder = "$VolumesFolder/jenkins_git_repo"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
@@ -45,12 +45,26 @@ function Check-Installation-Folder {
 		git pull https://github.com/JSGitHubbing/DevopsChallenge
 		Print-Block
 	}
+
+	Get-Content $ConfigurationFile | Foreach-Object{
+		$var = $_.Split('=')
+		try {
+			$TestVariable = Get-Variable -Scope Global -Name $var[0] -ErrorAction Stop
+			if(-not($TestVariable)) {
+				New-Variable -Name $var[0] -Value $var[1] -Scope Global
+			} else {
+				Set-Variable -Name $var[0] -Value $var[1] -Scope Global
+			}
+		} catch {
+				Set-Variable -Name $var[0] -Value $var[1] -Scope Global
+		}
+	}
 }
 
 function Restart-Machine {
 	 ## Restart required to ensure the new installations work properly
 	Refresh-Environment-Variables
-    $Command = "%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe Set-Location $BaseFolder; $BaseFolder\$ScriptName r"
+    $Command = "%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe Set-Location $BaseFolder; $BaseFolder\$ScriptName -r"
     Set-Location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
     New-Itemproperty . RunItOnce_DockerInstallationScript -propertytype ExpandString -value $Command
 
@@ -70,21 +84,62 @@ function Restart-Machine {
 
 function Wait-DockerUp {
 	param ($SecondsToWait, $MaxTries)
+
 	$Tries = 1
 	DO {
-		Write-Host "Checking if docker is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow
+		
+		Write-Host "`rChecking if docker is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow -NoNewLine 
 		$IsDockerUp = powershell docker ps
 		Start-Sleep -Seconds $SecondsToWait
 		$Tries++
 	} WHILE (-not($IsDockerUp) -and($Tries -le ($MaxTries+1)))
 
-	if($Tries -gt $MaxTries) {
+	if($Tries -gt $MaxTries+1) {
 		Write-Host "ERROR: Docker was not running in the expected time" -ForegroundColor Red
 		Write-Host "Try modifying the DockerTimeBetweenTries and DockerStartCheckMaxTries in the installation.config file"
 		pause
 		exit -1
 	} else {
-		Write-Host "Docker is up and running" -ForegroundColor Green
+		Write-Host "`nDocker is up and running" -ForegroundColor Green
+		Print-Block
+	}
+}
+
+function Wait-JenkinsUp {
+	param ($SecondsToWait, $MaxTries)
+
+	$Combination = "$($JenkinsUser):$($JenkinsPassword)"
+	$EncodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($Combination))
+	$BasicAuthValue = "Basic $EncodedCredentials"
+
+	$Headers = @{
+		Authorization = $BasicAuthValue
+	}
+
+	$Tries = 1
+    $IsJenkinsUp = $false
+	DO {
+		Start-Sleep -Seconds $SecondsToWait
+		Write-Host "`rChecking if Jenkins is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow -NoNewLine 
+		$StatusCode
+		try {
+			$Response = Invoke-WebRequest -Uri $JenkinsUrl -Headers $Headers
+			$StatusCode = $Response.StatusCode
+            $IsJenkinsUp = $Response.StatusCode -eq "200"
+		    Write-Host "  Current satus code: $StatusCode" -NoNewLine
+		}
+		catch {
+			$StatusCode = $_.Exception.Response.StatusCode.value__
+		}
+		$Tries++
+	} WHILE (-not($IsJenkinsUp) -and($Tries -le ($MaxTries+1)))
+
+	if($Tries -gt $MaxTries+1) {
+		Write-Host "ERROR: Jenkins was not running in the expected time" -ForegroundColor Red
+		pause
+		exit -1
+	} else {
+		Write-Host "`nJenkins is up and running" -ForegroundColor Green
 		Print-Block
 	}
 }
@@ -178,10 +233,6 @@ if(-not($restarted)){
 }
 else {
 	Check-Installation-Folder
-	Get-Content $ConfigurationFile | Foreach-Object{
-		$var = $_.Split('=')
-		New-Variable -Name $var[0] -Value $var[1]
-	}
 
 	Write-Host "Launching Docker-Desktop" -ForegroundColor Magenta
 	Start-Process -FilePath $DockerDesktopPath
@@ -219,6 +270,11 @@ else {
 	Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
 	docker-compose up -d
 	Set-Location $BaseFolder
+
+	# Check if jenkins is running
+	Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
+	# Create the pipeline
+    & $GitShPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
 }
 Write-Host "Script Finished" -ForegroundColor Green
 pause
