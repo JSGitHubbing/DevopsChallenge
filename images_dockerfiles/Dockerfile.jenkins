@@ -1,5 +1,7 @@
 FROM jenkins/jenkins:latest
 
+USER root
+
 # Setting up environment variables for Jenkins admin user
 ENV JENKINS_USER admin
 ENV JENKINS_PASS admin

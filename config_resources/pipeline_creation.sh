@@ -7,8 +7,9 @@ then
 fi
 
 JENKINS_URL=$1
-REQUEST="https://$JENKINS_URL"
+REQUEST="http://$JENKINS_URL"
 ENDING='/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
-CRUMB=$(curl "$REQUEST$ENDING" -u $2:$3)
-echo $CRUMB
-curl -XPOST "https://$JENKINS_URL/createItem?name=MyMultiplePipeline" -u  $2:$3 --data-binary multipipeline.xml -H $CRUMB -H "Content-Type:text/xml"
+COOKIEJAR="$(mktemp)"
+CRUMB=$(curl -u "$2:$3" --cookie-jar "$COOKIEJAR" "http://$JENKINS_URL/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,%22:%22,//crumb)")
+curl -s -XPOST "http://$JENKINS_URL/createItem?name=TheFolder" -u  $2:$3 --data-binary @folder.xml -v --cookie "$COOKIEJAR" -H $CRUMB -H "Content-Type:text/xml"
+curl -s -XPOST "http://$JENKINS_URL/createItem?name=TheProject" -u  $2:$3 --data-binary @multipipeline.xml -v --cookie "$COOKIEJAR" -H $CRUMB -H "Content-Type:text/xml"

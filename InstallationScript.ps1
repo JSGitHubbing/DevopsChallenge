@@ -55,9 +55,16 @@ function Restart-Machine {
     New-Itemproperty . RunItOnce_DockerInstallationScript -propertytype ExpandString -value $Command
 
     Write-Host "Restart is required. The script will continue after the restarting..." -ForegroundColor Magenta
-    pause
-    shutdown /r
-    Write-Host "The script will continue after the restarting..." -ForegroundColor Magenta
+	
+	Write-Host "Do you want to restart now? [y/n]"
+	$SelectedOption = Read-Host
+	
+	if($SelectedOption -eq 'y') {
+		shutdown /r
+		Write-Host "The script will continue after the restarting..." -ForegroundColor Magenta
+	} else {
+		Write-Host "The script will continue when you restart the computer" -ForegroundColor Magenta
+	}
 
 }
 

@@ -3,9 +3,13 @@ version: "3.5"
 services:
     jenkins:
         container_name: jenkins
+        environment:
+            - PLUGINS_FORCE_UPGRADE=true # Enforce upgrade of native plugins at startup
         image: devops_jenkins
         ports:
             - "8081:8080"
+            - "50000:50000"
+            - "443:8443"
         volumes:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
