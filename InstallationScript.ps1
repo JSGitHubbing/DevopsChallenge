@@ -68,6 +68,26 @@ function Restart-Machine {
 
 }
 
+function Wait-DockerUp {
+	param ($SecondsToWait, $MaxTries)
+	$Tries = 1
+	DO {
+		Write-Host "Checking if docker is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow
+		$IsDockerUp = powershell docker ps
+		Start-Sleep -Seconds $SecondsToWait
+		$Tries++
+	} WHILE (-not($IsDockerUp) -and($Tries -le ($MaxTries+1)))
+
+	if($Tries -gt $MaxTries) {
+		Write-Host "ERROR: Docker was not running in the expected time" -ForegroundColor Red
+		Write-Host "Try modifying the DockerTimeBetweenTries and DockerStartCheckMaxTries in the installation.config file"
+		pause
+		exit -1
+	} else {
+		Write-Host "Docker is up and running" -ForegroundColor Green
+		Print-Block
+	}
+}
 
 if(-not($restarted)){
 	Write-Host "Installing Chocolatey" -ForegroundColor Magenta
@@ -165,8 +185,7 @@ else {
 
 	Write-Host "Launching Docker-Desktop" -ForegroundColor Magenta
 	Start-Process -FilePath $DockerDesktopPath
-	Start-Sleep -Seconds $DockerLaunchWaitSeconds
-	Print-Block
+	Wait-DockerUp $DockerTimeBetweenTries $DockerStartCheckMaxTries
 
 	## Prepare images
 	Write-Host "Preparing Docker images" -ForegroundColor Magenta

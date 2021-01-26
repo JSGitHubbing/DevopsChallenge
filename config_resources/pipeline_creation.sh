@@ -11,5 +11,4 @@ REQUEST="http://$JENKINS_URL"
 ENDING='/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
 COOKIEJAR="$(mktemp)"
 CRUMB=$(curl -u "$2:$3" --cookie-jar "$COOKIEJAR" "http://$JENKINS_URL/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,%22:%22,//crumb)")
-curl -s -XPOST "http://$JENKINS_URL/createItem?name=TheFolder" -u  $2:$3 --data-binary @folder.xml -v --cookie "$COOKIEJAR" -H $CRUMB -H "Content-Type:text/xml"
 curl -s -XPOST "http://$JENKINS_URL/createItem?name=TheProject" -u  $2:$3 --data-binary @multipipeline.xml -v --cookie "$COOKIEJAR" -H $CRUMB -H "Content-Type:text/xml"
