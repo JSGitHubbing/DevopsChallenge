@@ -1,6 +1,6 @@
 ---
 name: Task
-about: Describe this issue template's purpose here.
+about: Little piece of work to be done.
 title: ''
 labels: ''
 assignees: ''
