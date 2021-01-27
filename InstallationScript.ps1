@@ -2,7 +2,7 @@ $global:BaseFolder = Get-Location
 $global:ScriptName = "InstallationScript.ps1"
 $global:Restarted = $args[0] -eq '-r'
 $global:VolumesFolder = "$BaseFolder/docker_volumes"
-$global:ProjectRepoFolder = "$VolumesFolder/jenkins_git_repo"
+$global:ProjectRepoFolder = "$VolumesFolder/project_folder"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
 $global:InstallationFolder = "$BaseFolder/devops-repository"
 $global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
@@ -11,7 +11,7 @@ function Refresh-Paths {
     param ($NewBaseFolder)
     Set-Variable -Name "BaseFolder" -Value $NewBaseFolder -Scope Global
     Set-Variable -Name "VolumesFolder" -Value "$BaseFolder/docker_volumes" -Scope Global
-    Set-Variable -Name "ProjectRepoFolder" -Value "$VolumesFolder/jenkins_git_repo" -Scope Global
+    Set-Variable -Name "ProjectRepoFolder" -Value "$VolumesFolder/project_folder" -Scope Global
     Set-Variable -Name "ConfigResourcesFolder" -Value "$BaseFolder/config_resources" -Scope Global
     Set-Variable -Name "ConfigurationFile" -Value "$ConfigResourcesFolder/installation.config" -Scope Global
 }
@@ -253,7 +253,7 @@ Print-Block
 
 ## Prepare user project
 Write-Host "Preparing User project repository" -ForegroundColor Magenta
-Write-Host "Creating docker_volumes/jenkins_git_repo folder"
+Write-Host "Creating docker_volumes/project_folder folder"
 ## Creating folders for the repository
 if (-Not (Test-Path $VolumesFolder))
 {
