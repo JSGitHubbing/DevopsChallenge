@@ -281,7 +281,11 @@ Set-Location $BaseFolder
 # Check if jenkins is running
 Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
 # Create the pipeline
-& $GitShPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
+$GitPath = where.exe git
+$GitPathParent = Split-Path -Path $GitPath
+$GitFolder = Split-Path -Path $GitPathParent
+$GitPathSh = "$GitFolder\bin\sh.exe"
+& $GitPathSh $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
 
 Write-Host "Script Finished" -ForegroundColor Green
 pause
