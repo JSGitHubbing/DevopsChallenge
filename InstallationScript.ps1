@@ -64,7 +64,7 @@ function Check-Installation-Folder {
 function Restart-Machine {
 	 ## Restart required to ensure the new installations work properly
 	Refresh-Environment-Variables
-	$Command = "%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe Set-Location $BaseFolder; $BaseFolder\$ScriptName -r"
+	$Command = "powershell Set-Location $BaseFolder; $BaseFolder\$ScriptName -r"
 	Set-Location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
 	New-Itemproperty . RunItOnce_DockerInstallationScript -propertytype ExpandString -value $Command
 
@@ -88,7 +88,7 @@ function Wait-DockerUp {
 	$Tries = 1
 	DO {
 		
-		Write-Host "`rChecking if docker is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow -NoNewLine 
+		Write-Host "`rChecking if docker is up ($Tries out $MaxTries attempts)" -ForegroundColor Yellow -NoNewLine 
 		$IsDockerUp = powershell docker ps
 		Start-Sleep -Seconds $SecondsToWait
 		$Tries++
@@ -120,7 +120,7 @@ function Wait-JenkinsUp {
 	$IsJenkinsUp = $false
 	DO {
 		Start-Sleep -Seconds $SecondsToWait
-		Write-Host "`rChecking if Jenkins is up ($Tries out $MaxTries tries)" -ForegroundColor Yellow -NoNewLine 
+		Write-Host "`rChecking if Jenkins is up ($Tries out $MaxTries attempts)" -ForegroundColor Yellow -NoNewLine 
 		$StatusCode
 		try {
 			$Response = Invoke-WebRequest -Uri $JenkinsUrl -Headers $Headers
@@ -193,8 +193,7 @@ if(-not($restarted)){
 	else {
 		Write-Host "Docker-desktop is already installed" -ForegroundColor Green
 	}
-	Remove-Variable TestDocker
-	Remove-Variable TestDockerCompose
+	
 	Print-Block
 	Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
 	Write-Host "TESTING Visual Studio Code installation" -ForegroundColor Magenta
@@ -229,52 +228,60 @@ if(-not($restarted)){
 	}
 	Remove-Variable TestGit
 	Print-Block
-	Restart-Machine
+    if(-not($TestDocker) -or (-not($TestDockerCompose))) {
+	    Restart-Machine
+		Remove-Variable TestDocker
+		Remove-Variable TestDockerCompose
+		Write-Host "Script Finished" -ForegroundColor Green
+		pause
+		exit 0
+    }
+    
 }
-else {
-	Check-Installation-Folder
 
-	Write-Host "Launching Docker-Desktop" -ForegroundColor Magenta
-	Start-Process -FilePath $DockerDesktopPath
-	Wait-DockerUp $DockerTimeBetweenTries $DockerStartCheckMaxTries
+Check-Installation-Folder
 
-	## Prepare images
-	Write-Host "Preparing Docker images" -ForegroundColor Magenta
-	# Copy-Item -Path "$BaseFolder/images_dockerfiles/Dockerfile_vscode" -Destination "$BaseFolder/my_visual_studio_code_project/.devcontainer/Dockerfile"
-	docker build -t devops_jenkins -f "$BaseFolder/images_dockerfiles/Dockerfile.jenkins" .
-	Print-Block
+Write-Host "Launching Docker-Desktop" -ForegroundColor Magenta
+Start-Process -FilePath $DockerDesktopPath
+Wait-DockerUp $DockerTimeBetweenTries $DockerStartCheckMaxTries
 
-	## Prepare user project
-	Write-Host "Preparing User project repository" -ForegroundColor Magenta
-	Write-Host "Creating docker_volumes/jenkins_git_repo folder"
-	## Creating folders for the repository
-	if (-Not (Test-Path $VolumesFolder))
-	{
-		mkdir $VolumesFolder
-	}
-	if (-Not (Test-Path $ProjectRepoFolder))
-	{	
-		mkdir $ProjectRepoFolder
-	}
-	Set-Location $ProjectRepoFolder
+## Prepare images
+Write-Host "Preparing Docker images" -ForegroundColor Magenta
+# Copy-Item -Path "$BaseFolder/images_dockerfiles/Dockerfile_vscode" -Destination "$BaseFolder/my_visual_studio_code_project/.devcontainer/Dockerfile"
+docker build -t devops_jenkins -f "$BaseFolder/images_dockerfiles/Dockerfile.jenkins" .
+Print-Block
 
-	## Clone repository and add Post-Commit Hook
-	Write-Host "Starting git"
-	git init
-	Write-Host "Pulling repository"
-	git pull "$ProjectRepositoryPath" > git_out.log 2>&1
-	Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFolder/.git/hooks"
-	Print-Block
-
-	## Launching containers
-	Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
-	docker-compose up -d
-	Set-Location $BaseFolder
-
-	# Check if jenkins is running
-	Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
-	# Create the pipeline
-	& $GitShPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
+## Prepare user project
+Write-Host "Preparing User project repository" -ForegroundColor Magenta
+Write-Host "Creating docker_volumes/jenkins_git_repo folder"
+## Creating folders for the repository
+if (-Not (Test-Path $VolumesFolder))
+{
+	mkdir $VolumesFolder
 }
+if (-Not (Test-Path $ProjectRepoFolder))
+{	
+	mkdir $ProjectRepoFolder
+}
+Set-Location $ProjectRepoFolder
+
+## Clone repository and add Post-Commit Hook
+Write-Host "Starting git"
+git init
+Write-Host "Pulling repository"
+git pull "$ProjectRepositoryPath" > git_out.log 2>&1
+Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFolder/.git/hooks"
+Print-Block
+
+## Launching containers
+Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
+docker-compose up -d
+Set-Location $BaseFolder
+
+# Check if jenkins is running
+Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
+# Create the pipeline
+& $GitShPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
+
 Write-Host "Script Finished" -ForegroundColor Green
 pause
