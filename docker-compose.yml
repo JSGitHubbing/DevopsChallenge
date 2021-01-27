@@ -13,16 +13,22 @@ services:
         links: 
             - sonarqube
             - postgres-db
-        dns:
-            - "10.0.0.14"
+        dns_search:
+          - jenkins.devossteam.com  
+        environment:
+            external_url:
+                "http://jenkins.devossteam.com/"
         volumes:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
             - .\docker_volumes\jenkins_git_repo:/home/jenkins_git_repo
+            - .\docker_volumes\jenkins_etc:/etc/
         networks:
             devossnet:
                 ipv4_address: 10.0.0.2
+                aliases:
+                    - "jenkins.devossteam.com"
     sonarqube:
         container_name: sonarqube
         image: sonarqube:lts
@@ -31,16 +37,19 @@ services:
         networks:
             devossnet:
                 ipv4_address: 10.0.0.3  
+                aliases:
+                    - "sonar.devossteam.com"
         links: 
-            - postgres-db  
-        dns:
-            - "10.0.0.14"    
+            - postgres-db
+        dns_search:
+          - sonar.devossteam.com   
         volumes:
             - .\docker_volumes\sonarqube_conf:/opt/sonarqube/conf
             - .\docker_volumes\sonarqube_data:/opt/sonarqube/data
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
+            - .\docker_volumes\sonarqube_etc:/etc/
     postgres-db:
         container_name: postgres-db
         image: postgres:10
@@ -50,23 +59,22 @@ services:
           - POSTGRES_USER=demo
           - POSTGRES_PASSWORD=demo
         ports:
-          - "60000:5432"
+          - "6000:5432"
         networks:
             devossnet:
                 ipv4_address: 10.0.0.4
-        dns:
-            - "10.0.0.14"        
+                aliases:
+                    - "postgres-db.devossteam.com"
+        dns_search:
+          - postgres-db.devossteam.com        
         volumes:
             - .\docker_volumes\postgres_sock:/var/run/postgres/postgres.sock
             - .\docker_volumes\postgres_database:/var/lib/postgresql/data
+            - .\docker_volumes\postgres_etc:/etc/
     
 networks:
     devossnet:
         name: devossnet
-        driver: bridge
-        ipam:
-            config:
-                - subnet: 10.0.0.1/16
-                  gateway: 10.0.0.1
+        external: true
         
             
