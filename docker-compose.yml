@@ -10,21 +10,63 @@ services:
             - "8081:8080"
             - "50000:50000"
             - "443:8443"
+        links: 
+            - sonarqube
+            - postgres-db
+        dns:
+            - "10.0.0.14"
         volumes:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
             - .\docker_volumes\jenkins_git_repo:/home/jenkins_git_repo
-            
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.2
     sonarqube:
         container_name: sonarqube
         image: sonarqube:lts
         ports:
             - "8082:9000"
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.3  
+        links: 
+            - postgres-db  
+        dns:
+            - "10.0.0.14"    
         volumes:
             - .\docker_volumes\sonarqube_conf:/opt/sonarqube/conf
             - .\docker_volumes\sonarqube_data:/opt/sonarqube/data
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
+    postgres-db:
+        container_name: postgres-db
+        image: postgres:10
+        restart: always
+        environment:
+          - POSTGRES_DB=demo
+          - POSTGRES_USER=demo
+          - POSTGRES_PASSWORD=demo
+        ports:
+          - "60000:5432"
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.4
+        dns:
+            - "10.0.0.14"        
+        volumes:
+            - .\docker_volumes\postgres_sock:/var/run/postgres/postgres.sock
+            - .\docker_volumes\postgres_database:/var/lib/postgresql/data
+    
+networks:
+    devossnet:
+        name: devossnet
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 10.0.0.1/16
+                  gateway: 10.0.0.1
+        
             
