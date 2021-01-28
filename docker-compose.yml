@@ -16,16 +16,16 @@ services:
             - ./docker_volumes/jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
             - ./project_folder:/home/jenkins_git_repo
             
-    # sonarqube:
-    #     container_name: sonarqube
-    #     image: sonarqube:lts
-    #     ports:
-    #         - "8082:9000"
-    #     volumes:
-    #         - ./docker_volumes/sonarqube_conf:/opt/sonarqube/conf
-    #         - ./docker_volumes/sonarqube_data:/opt/sonarqube/data
-    #         - ./docker_volumes/sonarqube_extensions:/opt/sonarqube/extensions
-    #         - ./docker_volumes/sonarqube_logs:/opt/sonarqube/logs
-    #         - ./docker_volumes/sonarqube_temp:/opt/sonarqube/temp
+    sonarqube:
+        container_name: sonarqube
+        image: sonarqube:lts
+        ports:
+            - "8082:9000"
+        volumes:
+            - ./docker_volumes/sonarqube_conf:/opt/sonarqube/conf
+            - ./docker_volumes/sonarqube_data:/opt/sonarqube/data
+            - ./docker_volumes/sonarqube_extensions:/opt/sonarqube/extensions
+            - ./docker_volumes/sonarqube_logs:/opt/sonarqube/logs
+            - ./docker_volumes/sonarqube_temp:/opt/sonarqube/temp
 
             

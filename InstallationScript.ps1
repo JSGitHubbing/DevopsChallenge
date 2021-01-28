@@ -79,7 +79,6 @@ function Restart-Machine {
 	} else {
 		Write-Host "The script will continue when you restart the computer" -ForegroundColor Magenta
 	}
-
 }
 
 function Wait-DockerUp {
@@ -121,12 +120,10 @@ function Wait-JenkinsUp {
 	DO {
 		Start-Sleep -Seconds $SecondsToWait
 		Write-Host "`rChecking if Jenkins is up ($Tries out $MaxTries attempts)" -ForegroundColor Yellow -NoNewLine 
-		$StatusCode
 		try {
 			$Response = Invoke-WebRequest -Uri $JenkinsUrl -Headers $Headers
 			$StatusCode = $Response.StatusCode
             $IsJenkinsUp = $Response.StatusCode -eq "200"
-		    Write-Host "  Current satus code: $StatusCode" -NoNewLine
 		}
 		catch {
 			$StatusCode = $_.Exception.Response.StatusCode.value__
@@ -236,7 +233,6 @@ if(-not($restarted)){
 		pause
 		exit 0
     }
-    
 }
 
 Check-Installation-Folder
@@ -276,6 +272,8 @@ Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
 docker-compose up -d
 Set-Location $BaseFolder
 
+Print-Block
+
 # Check if jenkins is running
 Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
 # Create the pipeline
@@ -289,7 +287,13 @@ $GitPath = where.exe git
 $GitPathParent = Split-Path -Path $GitPath
 $GitFolder = Split-Path -Path $GitPathParent
 $GitPathSh = "$GitFolder\bin\sh.exe"
+
+Write-Host "Creating pipeline" -ForegroundColor Magenta
 & $GitPathSh $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
+Print-Block
+Write-Host "Creating sonar project" -ForegroundColor Magenta
+& $GitPathSh $ConfigResourcesFolder/sonar_project.sh $SonarAddress MyProjectKey MyProjectName $SonarUser $SonarPassword
+Print-Block
 
 Write-Host "Script Finished" -ForegroundColor Green
 pause
