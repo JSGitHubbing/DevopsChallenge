@@ -1,8 +1,8 @@
 version: "3.5"
         
 services:
-    jenkins:
-        container_name: jenkins
+    jenkinsdevoss:
+        container_name: jenkinsdevoss
         environment:
             - PLUGINS_FORCE_UPGRADE=true # Enforce upgrade of native plugins at startup
         image: devops_jenkins
@@ -11,8 +11,8 @@ services:
             - "50000:50000"
             - "443:8443"
         links: 
-            - sonarqube
-            - postgres-db
+            - sonarqubedevoss
+            - postgres-db-devoss
         dns_search:
           - jenkins.devossteam.com  
         environment:
@@ -29,8 +29,8 @@ services:
                 ipv4_address: 10.0.0.2
                 aliases:
                     - "jenkins.devossteam.com"
-    sonarqube:
-        container_name: sonarqube
+    sonarqubedevoss:
+        container_name: sonarqubedevoss
         image: sonarqube:lts
         ports:
             - "8082:9000"
@@ -40,7 +40,7 @@ services:
                 aliases:
                     - "sonar.devossteam.com"
         links: 
-            - postgres-db
+            - postgres-db-devoss
         dns_search:
           - sonar.devossteam.com   
         volumes:
@@ -50,8 +50,8 @@ services:
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
             - .\docker_volumes\sonarqube_etc:/etc/
-    postgres-db:
-        container_name: postgres-db
+    postgres-db-devoss:
+        container_name: postgres-db-devoss
         image: postgres:10
         restart: always
         environment:
@@ -80,5 +80,3 @@ networks:
             config:
                 - subnet: 10.0.0.1/16
                   gateway: 10.0.0.1
-        
-            
