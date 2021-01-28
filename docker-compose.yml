@@ -22,7 +22,7 @@ services:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
-            - .\docker_volumes\jenkins_git_repo:/home/jenkins_git_repo
+            - .\docker_volumes\project_git_repo:/home/project_git_repo
             - .\docker_volumes\jenkins_etc:/etc/
         networks:
             devossnet:
@@ -45,6 +45,7 @@ services:
           - sonar.devossteam.com   
         volumes:
             - .\docker_volumes\sonarqube_conf:/opt/sonarqube/conf
+            - .\docker_volumes\project_git_repo:/home/project_git_repo
             - .\docker_volumes\sonarqube_data:/opt/sonarqube/data
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
@@ -52,8 +53,7 @@ services:
             - .\docker_volumes\sonarqube_etc:/etc/
     postgres-db-devoss:
         container_name: postgres-db-devoss
-        image: postgres:10
-        restart: always
+        image: postgres:latest
         environment:
           - POSTGRES_DB=demo
           - POSTGRES_USER=demo
