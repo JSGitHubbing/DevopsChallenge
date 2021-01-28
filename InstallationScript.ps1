@@ -287,8 +287,8 @@ Write-Host "Creating the Jenkins pipeline..." -ForegroundColor Magenta
 & $GitPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
 
 # Create the project in sonar
-Write-Host "Creating project in Sonarqube..." -ForegroundColor Magenta
-& $GitPath $ConfigResourcesFolder/sonar_project_creation.sh $SonarAddress $ProjectRepositoryPath $SonarUser $SonarPassword
+#Write-Host "Creating project in Sonarqube..." -ForegroundColor Magenta
+#& $GitPath $ConfigResourcesFolder/sonar_project_creation.sh $SonarAddress $ProjectRepositoryPath $SonarUser $SonarPassword
 
 # Launching Jenkins instance on a browser
 Start-Process 'http://host.docker.internal:8081/'
