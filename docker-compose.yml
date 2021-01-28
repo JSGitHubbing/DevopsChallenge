@@ -23,7 +23,7 @@ services:
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
             - .\docker_volumes\project_git_repo:/home/project_git_repo
-            - .\docker_volumes\jenkins_etc:/etc/
+
         networks:
             devossnet:
                 ipv4_address: 10.0.0.2
@@ -47,17 +47,18 @@ services:
             - .\docker_volumes\sonarqube_conf:/opt/sonarqube/conf
             - .\docker_volumes\project_git_repo:/home/project_git_repo
             - .\docker_volumes\sonarqube_data:/opt/sonarqube/data
+            - .\docker_volumes\sonarqube_postgresql:/var/lib/postgresql
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
-            - .\docker_volumes\sonarqube_etc:/etc/
+
     postgres-db-devoss:
         container_name: postgres-db-devoss
-        image: postgres:latest
+        image: postgres:10
         environment:
-          - POSTGRES_DB=demo
-          - POSTGRES_USER=demo
-          - POSTGRES_PASSWORD=demo
+          - POSTGRES_DB=postgres
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres1
         ports:
           - "6000:5432"
         networks:
@@ -70,7 +71,7 @@ services:
         volumes:
             - .\docker_volumes\postgres_sock:/var/run/postgres/postgres.sock
             - .\docker_volumes\postgres_database:/var/lib/postgresql/data
-            - .\docker_volumes\postgres_etc:/etc/
+
     
 networks:
     devossnet:
