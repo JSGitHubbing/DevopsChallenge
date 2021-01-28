@@ -1,3 +1,4 @@
+$global:InitFolder = Get-Location
 $global:BaseFolder = Get-Location
 $global:ScriptName = "InstallationScript.ps1"
 $global:Restarted = $args[0] -eq '-r'
@@ -284,5 +285,11 @@ Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
 $GitPath = where.exe sh
 & $GitPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
 
+# Launching Jenkins instance on a browser
+Start-Process 'http://host.docker.internal:8081/'
+# Launching Sonar instance on a browser
+Start-Process 'http://host.docker.internal:8082/'
+
+Set-Location $InitFolder
 Write-Host "Script Finished" -ForegroundColor Green
 pause
