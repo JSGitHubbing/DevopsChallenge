@@ -267,7 +267,8 @@ Print-Block
 ## Prepare images
 Write-Host "Preparing Docker images" -ForegroundColor Magenta
 docker build -t devops_jenkins -f "$BaseFolder/images_dockerfiles/Dockerfile.jenkins" .
-docker build -t devops_production -f "$BaseFolder/images_dockerfiles/Dockerfile.angular" .
+#docker build -t devops_production -f "$BaseFolder/images_dockerfiles/Dockerfile.angular" .
+docker-compose -f $ProjectRepoFolder/docker-compose.yml up -d
 Print-Block
 
 ## Launching containers
@@ -278,6 +279,12 @@ Set-Location $BaseFolder
 # Check if jenkins is running
 Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
 # Create the pipeline
+Copy-Item $ConfigResourcesFolder/Jenkinsfile -Destination $ProjectRepoFolder
+Set-Location  $ProjectRepoFolder
+git add Jenkinsfile
+git commit -m "Adding Jenkins file"
+Set-Location $BaseFolder
+
 $GitPath = where.exe git
 $GitPathParent = Split-Path -Path $GitPath
 $GitFolder = Split-Path -Path $GitPathParent

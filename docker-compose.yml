@@ -7,9 +7,9 @@ services:
             - PLUGINS_FORCE_UPGRADE=true # Enforce upgrade of native plugins at startup
         image: devops_jenkins
         ports:
-            - "8081:8080"
-            - "50000:50000"
-            - "443:8443"
+            - "9080:8080"
+            - "50001:50000"
+            - "9443:443"
         volumes:
             - ./docker_volumes/jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - ./docker_volumes/jenkins_home:/var/jenkins_home
@@ -27,11 +27,5 @@ services:
     #         - ./docker_volumes/sonarqube_extensions:/opt/sonarqube/extensions
     #         - ./docker_volumes/sonarqube_logs:/opt/sonarqube/logs
     #         - ./docker_volumes/sonarqube_temp:/opt/sonarqube/temp
-    angular:
-        container_name: production_container
-        image: devops_production
-        ports:
-            - "8082:80"
-            - "8083:4200"
 
             
