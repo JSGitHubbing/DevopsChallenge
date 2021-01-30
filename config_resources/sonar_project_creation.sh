@@ -17,5 +17,5 @@ curl --include \
      --request POST \
      --header "Content-Type: application/x-www-form-urlencoded" \
      -u  $3:$4 \
-     -d 'project=$PROJECTREPOSITORYPATH&organization=devossteam&name=myproject' \
+     -d "project=$PROJECTREPOSITORYPATH&organization=devossteam&name=myproject" \
 "http://$SONAR_DOMAIN/api/projects/create"
