@@ -7,7 +7,11 @@ then
 fi
 PROJECTREPOSITORYPATH=$2
 SONAR_DOMAIN=$1
-JENKINS_URL=$1
+
+
+RESULT = $(curl --include --request GET --header "Content-Type: application/x-www-form-urlencoded" -u  $3:$4 "http://$SONAR_DOMAIN/api/authentication")
+
+echo $RESULT
 
 curl --include \
      --request POST \
