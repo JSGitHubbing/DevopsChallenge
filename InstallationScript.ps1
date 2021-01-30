@@ -145,6 +145,45 @@ function Wait-JenkinsUp {
 	}
 }
 
+function Wait-SonarqubeUp {
+	param ($SecondsToWait, $MaxTries)
+
+	$Combination = "$($SonarUser):$($SonarPassword)"
+	$EncodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($Combination))
+	$BasicAuthValue = "Basic $EncodedCredentials"
+
+	$Headers = @{
+		Authorization = $BasicAuthValue
+	}
+
+	$Tries = 1
+	$IsSonarUp = $false
+	DO {
+		Start-Sleep -Seconds $SecondsToWait
+		Write-Host "`rChecking if Sonarqube is up ($Tries out $MaxTries attempts)" -ForegroundColor Yellow -NoNewLine 
+		$StatusCode
+		try {
+			$Response = Invoke-WebRequest -Uri $SonarUrl -Headers $Headers
+			$StatusCode = $Response.StatusCode
+            $IsSonarUp = $Response.StatusCode -eq "200"
+		    Write-Host "  Current satus code: $StatusCode" -NoNewLine
+		}
+		catch {
+			$StatusCode = $_.Exception.Response.StatusCode.value__
+		}
+		$Tries++
+	} WHILE (-not($IsSonarUp) -and($Tries -le ($MaxTries+1)))
+
+	if($Tries -gt $MaxTries+1) {
+		Write-Host "ERROR: Sonarqube was not running in the expected time" -ForegroundColor Red
+		pause
+		exit -1
+	} else {
+		Write-Host "`nSonarqube is up and running" -ForegroundColor Green
+		Print-Block
+	}
+}
+
 if(-not($restarted)){
 	Write-Host "Installing Chocolatey" -ForegroundColor Magenta
 	Write-Host "TESTING Chocolatey installation" -ForegroundColor Magenta
@@ -286,8 +325,10 @@ $GitPath = where.exe sh
 Write-Host "Creating the Jenkins pipeline..." -ForegroundColor Magenta
 & $GitPath $ConfigResourcesFolder/pipeline_creation.sh $JenkinsAddress $JenkinsUser $JenkinsPassword
 
-# Create the project in sonar
-#Write-Host "Creating project in Sonarqube..." -ForegroundColor Magenta
+# Check if Sonarqube is running
+Wait-SonarqubeUp $SonarTimeBetweenTries $SonarStartCheckMaxTries
+# Create the key and the project in sonar
+# Write-Host "Creating project in Sonarqube..." -ForegroundColor Magenta
 #& $GitPath $ConfigResourcesFolder/sonar_project_creation.sh $SonarAddress $ProjectRepositoryPath $SonarUser $SonarPassword
 
 # Launching Jenkins instance on a browser
