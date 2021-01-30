@@ -97,4 +97,4 @@ networks:
         ipam:
             config:
                 - subnet: 10.0.0.1/16
-                  gateway: 10.0.0.1
+                  gateway: 10.0.0.1 
