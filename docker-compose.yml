@@ -50,7 +50,25 @@ services:
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
-
+    nginxserverdevoss:
+        image: adoptopenjdk/maven-openjdk11:latest
+        build:
+            context: .\docker_volumes\project_git_repo
+        volumes:
+        - .\docker_volumes\project_git_repo:/home/app
+        - .\docker_volumnes\nginxserver_/.m2:/root/.m2
+        ports:
+        - "8008:80"
+        container_name: nginxserverdevoss
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.4  
+                aliases:
+                    - "nginxserver.devossteam.com"
+        links: 
+            - postgres-db-devoss
+        dns_search:
+          - nginxserver.devossteam.com
     postgres-db-devoss:
         container_name: postgres-db-devoss
         image: postgres:10
@@ -62,7 +80,7 @@ services:
           - "6000:5432"
         networks:
             devossnet:
-                ipv4_address: 10.0.0.4
+                ipv4_address: 10.0.0.5
                 aliases:
                     - "postgres-db.devossteam.com"
         dns_search:
