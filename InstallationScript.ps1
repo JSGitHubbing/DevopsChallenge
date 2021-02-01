@@ -3,7 +3,8 @@ $global:BaseFolder = Get-Location
 $global:ScriptName = "InstallationScript.ps1"
 $global:Restarted = $args[0] -eq '-r'
 $global:VolumesFolder = "$BaseFolder/docker_volumes"
-$global:ProjectRepoFolder = "$VolumesFolder/project_git_repo"
+$global:ProjectRepoFolder = "$VolumesFolder/project_git_repo/app"
+$global:ProjectNginxFolder = "$VolumesFolder/project_git_repo/nginx/conf.d"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
 $global:InstallationFolder = "$BaseFolder/devops-repository"
 $global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
@@ -12,7 +13,8 @@ function Refresh-Paths {
     param ($NewBaseFolder)
     Set-Variable -Name "BaseFolder" -Value $NewBaseFolder -Scope Global
     Set-Variable -Name "VolumesFolder" -Value "$BaseFolder/docker_volumes" -Scope Global
-    Set-Variable -Name "ProjectRepoFolder" -Value "$VolumesFolder/project_git_repo" -Scope Global
+    Set-Variable -Name "ProjectRepoFolder" -Value "$VolumesFolder/project_git_repo/app" -Scope Global
+	Set-Variable -Name "ProjectNginxFolder" -Value "$VolumesFolder/project_git_repo/nginx/conf.d" -Scope Global
     Set-Variable -Name "ConfigResourcesFolder" -Value "$BaseFolder/config_resources" -Scope Global
     Set-Variable -Name "ConfigurationFile" -Value "$ConfigResourcesFolder/installation.config" -Scope Global
 }
@@ -303,6 +305,11 @@ if (-Not (Test-Path $ProjectRepoFolder))
 {	
 	mkdir $ProjectRepoFolder
 }
+if (-Not (Test-Path $ProjectNginxFolder))
+{	
+	mkdir $ProjectNginxFolder
+}
+
 Set-Location $ProjectRepoFolder
 
 ## Clone repository and add Post-Commit Hook
@@ -312,6 +319,9 @@ Write-Host "Pulling repository"
 git pull "$ProjectRepositoryPath" > git_out.log 2>&1
 Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFolder/.git/hooks"
 Print-Block
+
+Write-Host "Preparing Docker springboot project image" -ForegroundColor Magenta
+docker build -t adoptopenjdk/maven-openjdk11:latest -f "$BaseFolder/docker_volumes/project_git_repo/Dockerfile" .
 
 ## Launching containers
 Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
