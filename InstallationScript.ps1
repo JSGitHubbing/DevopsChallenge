@@ -8,6 +8,7 @@ $global:ProjectNginxFolder = "$VolumesFolder/project_git_repo/nginx/conf.d"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
 $global:InstallationFolder = "$BaseFolder/devops-repository"
 $global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
+$global:ServerNginxConfigContent = "server { listen 8008; location / { proxy_pass http://localhost:8008/; } }"
 
 function Refresh-Paths {
     param ($NewBaseFolder)
@@ -308,6 +309,8 @@ if (-Not (Test-Path $ProjectRepoFolder))
 if (-Not (Test-Path $ProjectNginxFolder))
 {	
 	mkdir $ProjectNginxFolder
+	Set-Location $ProjectNginxFolder
+	Write-Host $ServerNginxConfigContent >> serverApp.conf
 }
 
 Set-Location $ProjectRepoFolder
