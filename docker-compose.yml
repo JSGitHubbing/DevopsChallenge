@@ -77,7 +77,7 @@ services:
         working_dir: /docker_volumes/project_git_repo/app
         environment:
             - server.port=8008
-            - pring.datasource.url=jdbc:postgresql://10.0.0.5:5432/postgres
+            - spring.datasource.url=jdbc:postgresql://10.0.0.5:5432/postgres
             - spring.datasource.username=postgres
             - spring.datasource.password=postgres1
         volumes:
