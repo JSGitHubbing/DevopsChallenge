@@ -58,8 +58,8 @@ services:
         image: nginx:latest
         restart: always
         ports:
-            - 8008:80
-            - 4443:443
+            - "8080:8080"
+            - "4443:443"
         volumes:
             - .\docker_volumes\project_git_repo\nginx\conf.d:/etc/nginx/conf.d
         depends_on:
@@ -71,13 +71,19 @@ services:
                     - "nginxserver.devossteam.com"
 
     app-devoss:
+        container_name: app-devoss
         restart: always
         build: .\docker_volumes\project_git_repo\app
-        working_dir: .\docker_volumes\project_git_repo\app
+        working_dir: /docker_volumes/project_git_repo/app
+        environment:
+            - server.port=8008
+            - pring.datasource.url=jdbc:postgresql://10.0.0.5:5432/postgres
+            - spring.datasource.username=postgres
+            - spring.datasource.password=postgres1
         volumes:
-          - .\docker_volumes\project_git_repo\app:/app
+          - .\docker_volumes\project_git_repo\app:/docker_volumes/project_git_repo/app
         expose:
-          - "8080"
+          - "8008"
         command: mvn clean spring-boot:run
         networks:
             devossnet:
