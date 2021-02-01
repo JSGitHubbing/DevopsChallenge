@@ -22,7 +22,7 @@ services:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
-            - .\docker_volumes\project_git_repo:/home/project_git_repo
+            - .\docker_volumes\project_git_repo\app:/home/project_git_repo
 
         networks:
             devossnet:
@@ -45,27 +45,45 @@ services:
           - sonar.devossteam.com   
         volumes:
             - .\docker_volumes\sonarqube_conf:/opt/sonarqube/conf
-            - .\docker_volumes\project_git_repo:/home/project_git_repo
+            - .\docker_volumes\project_git_repo\app:/home/project_git_repo
             - .\docker_volumes\sonarqube_postgresql:/var/lib/postgresql
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
+    
+      
+
     nginxserverdevoss:
-        image: nginx:latest
-        volumes:
-            - .\docker_volumes\project_git_repo:/home/project_git_repo
-        ports:
-        - "8008:80"
         container_name: nginxserverdevoss
+        image: nginx:latest
+        restart: always
+        ports:
+            - 8008:80
+            - 4443:443
+        volumes:
+            - .\docker_volumes\project_git_repo\nginx\conf.d:/etc/nginx/conf.d
+        depends_on:
+            - app-devoss
         networks:
             devossnet:
                 ipv4_address: 10.0.0.4  
                 aliases:
                     - "nginxserver.devossteam.com"
-        links: 
-            - postgres-db-devoss
-        dns_search:
-          - nginxserver.devossteam.com
+
+    app-devoss:
+        restart: always
+        build: .\docker_volumes\project_git_repo\app
+        working_dir: .\docker_volumes\project_git_repo\app
+        volumes:
+          - .\docker_volumes\project_git_repo\app:/app
+        expose:
+          - "8080"
+        command: mvn clean spring-boot:run
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.6  
+                aliases:
+                    - "app.devossteam.com"
     postgres-db-devoss:
         container_name: postgres-db-devoss
         image: postgres:10
