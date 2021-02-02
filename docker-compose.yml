@@ -62,8 +62,6 @@ services:
             - "443:443"
         volumes:
             - .\docker_volumes\project_git_repo\nginx\conf.d:/etc/nginx/conf.d
-        depends_on:
-            - app-devoss
         networks:
             devossnet:
                 ipv4_address: 10.0.0.4  
