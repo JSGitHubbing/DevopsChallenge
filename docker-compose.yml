@@ -74,7 +74,12 @@ services:
         container_name: app-devoss
         restart: always
         build: .\docker_volumes\project_git_repo\app
-        working_dir: /docker_volumes/project_git_repo/app        
+        working_dir: /docker_volumes/project_git_repo/app
+        environment:
+            - DSERVER.PORT=8008
+            - DSPRING.DATASOURCE.URL='jdbc:postgresql://10.0.0.5:5432/postgres'
+            - DSPRING.DATASOURCE.USERNAME=postgres
+            - DSPRING.DATASOURCE.PASSWORD=postgres1
         volumes:
           - .\docker_volumes\project_git_repo\app:/docker_volumes/project_git_repo/app
         expose:
