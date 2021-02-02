@@ -311,7 +311,7 @@ if (-Not (Test-Path $ProjectNginxFolder))
 {	
 	mkdir $ProjectNginxFolder
 	Set-Location $ProjectNginxFolder
-	Write-Host $ServerNginxConfigContent >> serverApp.conf
+	$ServerNginxConfigContent > serverApp.conf
 }
 
 Set-Location $ProjectRepoFolder
