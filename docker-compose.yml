@@ -8,8 +8,6 @@ services:
         image: devops_jenkins
         ports:
             - "8081:8080"
-            - "50000:50000"
-            - "443:8443"
         links: 
             - sonarqubedevoss
             - postgres-db-devoss
@@ -22,7 +20,8 @@ services:
             - .\docker_volumes\jenkins:/home/jenkins # Allows to write .ssh/known_hosts
             - .\docker_volumes\jenkins_home:/var/jenkins_home
             - .\docker_volumes\jenkins_socket/:/var/run/docker.sock # Jenkins allowed to start/stop containers
-            - .\docker_volumes\project_git_repo\app:/home/project_git_repo
+            - .\docker_volumes\project_git_repo\app\back:/home/project_git_repo/app/back
+            - .\docker_volumes\project_git_repo\app\front:/home/project_git_repo/app/front
 
         networks:
             devossnet:
@@ -45,7 +44,8 @@ services:
           - sonar.devossteam.com   
         volumes:
             - .\docker_volumes\sonarqube_conf:/opt/sonarqube/conf
-            - .\docker_volumes\project_git_repo\app:/home/project_git_repo
+            - .\docker_volumes\project_git_repo\app\back:/home/project_git_repo/app/back
+            - .\docker_volumes\project_git_repo\app\front:/home/project_git_repo/app/front
             - .\docker_volumes\sonarqube_postgresql:/var/lib/postgresql
             - .\docker_volumes\sonarqube_extensions:/opt/sonarqube/extensions
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
@@ -58,8 +58,8 @@ services:
         image: nginx:latest
         restart: always
         ports:
-            - "8080:8080"
-            - "4443:443"
+            - "80:80"
+            - "443:443"
         volumes:
             - .\docker_volumes\project_git_repo\nginx\conf.d:/etc/nginx/conf.d
         depends_on:
@@ -70,18 +70,20 @@ services:
                 aliases:
                     - "nginxserver.devossteam.com"
 
-    app-devoss:
-        container_name: app-devoss
+    app-back-devoss:
+        container_name: app-back-devoss
         restart: always
-        build: .\docker_volumes\project_git_repo\app
-        working_dir: /docker_volumes/project_git_repo/app
+        build: .\docker_volumes\project_git_repo\app\back
+        working_dir: /docker_volumes/project_git_repo/app/back
+        ports:
+            - "8008:8008"
         environment:
             - DSERVER.PORT=8008
             - DSPRING.DATASOURCE.URL='jdbc:postgresql://10.0.0.5:5432/postgres'
             - DSPRING.DATASOURCE.USERNAME=postgres
             - DSPRING.DATASOURCE.PASSWORD=postgres1
         volumes:
-          - .\docker_volumes\project_git_repo\app:/docker_volumes/project_git_repo/app
+          - .\docker_volumes\project_git_repo\app\back:/docker_volumes/project_git_repo/app/back
         expose:
           - "8008"
         depends_on:
@@ -91,7 +93,26 @@ services:
             devossnet:
                 ipv4_address: 10.0.0.6  
                 aliases:
-                    - "app.devossteam.com"
+                    - "app-back.devossteam.com"
+    app-front-devoss:
+        container_name: app-front-devoss
+        restart: always
+        build: .\docker_volumes\project_git_repo\app\front
+        working_dir: /docker_volumes/project_git_repo/app/front
+        ports:
+          - "9009:4200"
+        volumes:
+          - .\docker_volumes\project_git_repo\app\front:/docker_volumes/project_git_repo/app/front
+        expose:
+          - "8008"
+        depends_on:
+            - app-back-devoss
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.7  
+                aliases:
+                    - "app-front.devossteam.com"
+    
     postgres-db-devoss:
         container_name: postgres-db-devoss
         image: postgres:10
