@@ -74,16 +74,13 @@ services:
         container_name: app-devoss
         restart: always
         build: .\docker_volumes\project_git_repo\app
-        working_dir: /docker_volumes/project_git_repo/app
-        environment:
-            - server.port=8008
-            - spring.datasource.url=jdbc:postgresql://10.0.0.5:5432/postgres
-            - spring.datasource.username=postgres
-            - spring.datasource.password=postgres1
+        working_dir: /docker_volumes/project_git_repo/app        
         volumes:
           - .\docker_volumes\project_git_repo\app:/docker_volumes/project_git_repo/app
         expose:
           - "8008"
+        depends_on:
+            - postgres-db-devoss
         command: mvn clean spring-boot:run
         networks:
             devossnet:
