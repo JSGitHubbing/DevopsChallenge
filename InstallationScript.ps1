@@ -18,6 +18,7 @@ function Refresh-Paths {
 	Set-Variable -Name "ProjectNginxFolder" -Value "$VolumesFolder/project_git_repo/nginx/conf.d" -Scope Global
     Set-Variable -Name "ConfigResourcesFolder" -Value "$BaseFolder/config_resources" -Scope Global
     Set-Variable -Name "ConfigurationFile" -Value "$ConfigResourcesFolder/installation.config" -Scope Global
+	Set-Variable -Name "ServerNginxConfigContent" -Value "server { listen 8008; location / { proxy_pass http://localhost:8008/; } }" -Scope Global
 }
 
 function Print-Block {
