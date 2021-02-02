@@ -3,18 +3,22 @@ $global:BaseFolder = Get-Location
 $global:ScriptName = "InstallationScript.ps1"
 $global:Restarted = $args[0] -eq '-r'
 $global:VolumesFolder = "$BaseFolder/docker_volumes"
-$global:ProjectRepoFolder = "$VolumesFolder/project_git_repo/app"
+$global:ProjectRepoBackFolder = "$VolumesFolder/project_git_repo/app/back"
+$global:ProjectRepoFrontFolder = "$VolumesFolder/project_git_repo/app/front"
 $global:ProjectNginxFolder = "$VolumesFolder/project_git_repo/nginx/conf.d"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
 $global:InstallationFolder = "$BaseFolder/devops-repository"
 $global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
-$global:ServerNginxConfigContent = "server { listen 8008; location / { proxy_pass http://localhost:8008/; } }"
+$global:ServerNginxConfigContent = "server { listen 80; location / { proxy_pass http://10.0.0.6:8008; } }"
 
 function Refresh-Paths {
     param ($NewBaseFolder)
     Set-Variable -Name "BaseFolder" -Value $NewBaseFolder -Scope Global
     Set-Variable -Name "VolumesFolder" -Value "$BaseFolder/docker_volumes" -Scope Global
     Set-Variable -Name "ProjectRepoFolder" -Value "$VolumesFolder/project_git_repo/app" -Scope Global
+    Set-Variable -Name "ProjectRepoBackFolder" -Value "$VolumesFolder/project_git_repo/app/back" -Scope Global
+    Set-Variable -Name "ProjectRepoFrontFolder" -Value "$VolumesFolder/project_git_repo/app/front" -Scope Global
+	
 	Set-Variable -Name "ProjectNginxFolder" -Value "$VolumesFolder/project_git_repo/nginx/conf.d" -Scope Global
     Set-Variable -Name "ConfigResourcesFolder" -Value "$BaseFolder/config_resources" -Scope Global
     Set-Variable -Name "ConfigurationFile" -Value "$ConfigResourcesFolder/installation.config" -Scope Global
@@ -303,9 +307,13 @@ if (-Not (Test-Path $VolumesFolder))
 {
 	mkdir $VolumesFolder
 }
-if (-Not (Test-Path $ProjectRepoFolder))
+if (-Not (Test-Path $ProjectRepoBackFolder))
 {	
-	mkdir $ProjectRepoFolder
+	mkdir $ProjectRepoBackFolder
+}
+if (-Not (Test-Path $ProjectRepoFrontFolder))
+{	
+	mkdir $ProjectRepoFrontFolder
 }
 if (-Not (Test-Path $ProjectNginxFolder))
 {	
@@ -314,14 +322,24 @@ if (-Not (Test-Path $ProjectNginxFolder))
 	$ServerNginxConfigContent > serverApp.conf
 }
 
-Set-Location $ProjectRepoFolder
+Set-Location $ProjectRepoBackFolder
 
-## Clone repository and add Post-Commit Hook
-Write-Host "Starting git"
+## Clone back repository and add Post-Commit Hook
+Write-Host "Starting git from back project"
 git init
 Write-Host "Pulling repository"
-git pull "$ProjectRepositoryPath" > git_out.log 2>&1
-Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFolder/.git/hooks"
+git pull "$ProjectBackRepositoryPath" > git_out.log 2>&1
+Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoBackFolder/.git/hooks"
+Print-Block
+
+Set-Location $ProjectRepoFrontFolder
+
+## Clone back repository and add Post-Commit Hook
+Write-Host "Starting git from front project"
+git init
+Write-Host "Pulling repository"
+git pull "$ProjectFrontRepositoryPath" > git_out.log 2>&1
+Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFrontFolder/.git/hooks"
 Print-Block
 
 Write-Host "Preparing Docker springboot project image" -ForegroundColor Magenta
@@ -329,8 +347,8 @@ docker build -t adoptopenjdk/maven-openjdk11:latest -f "$BaseFolder/docker_volum
 
 ## Launching containers
 Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
-docker-compose up -d
 Set-Location $BaseFolder
+docker-compose up -d
 
 # Check if jenkins is running
 Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
