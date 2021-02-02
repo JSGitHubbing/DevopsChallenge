@@ -9,7 +9,7 @@ $global:ProjectNginxFolder = "$VolumesFolder/project_git_repo/nginx/conf.d"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
 $global:InstallationFolder = "$BaseFolder/devops-repository"
 $global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
-$global:ServerNginxConfigContent = "server { listen 80; location / { proxy_pass http://10.0.0.6:8008; } }"
+$global:ServerNginxConfigContent = "server { listen 80; location / { proxy_pass http://10.0.0.7:9009; } }"
 
 function Refresh-Paths {
     param ($NewBaseFolder)
