@@ -76,11 +76,11 @@ services:
         build: .\docker_volumes\project_git_repo\app\front
         working_dir: /docker_volumes/project_git_repo/app/front
         ports:
-          - "9009:4200"
+          - "4200:4200"
         volumes:
           - .\docker_volumes\project_git_repo\app\front:/docker_volumes/project_git_repo/app/front
         expose:
-          - "9009"
+          - "4200"
         depends_on:
             - app-back-devoss
           
