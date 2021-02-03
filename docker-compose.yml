@@ -51,23 +51,6 @@ services:
             - .\docker_volumes\sonarqube_logs:/opt/sonarqube/logs
             - .\docker_volumes\sonarqube_temp:/opt/sonarqube/temp
     
-      
-
-    nginxserverdevoss:
-        container_name: nginxserverdevoss
-        image: nginx:latest
-        restart: always
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - .\docker_volumes\project_git_repo\nginx\conf.d:/etc/nginx/conf.d
-        networks:
-            devossnet:
-                ipv4_address: 10.0.0.4  
-                aliases:
-                    - "nginxserver.devossteam.com"
-
     app-back-devoss:
         container_name: app-back-devoss
         restart: always
