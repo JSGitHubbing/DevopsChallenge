@@ -195,7 +195,7 @@ function Wait-SonarqubeUp {
 if(-not($restarted)){
 	Write-Host "Installing Chocolatey" -ForegroundColor Magenta
 	Write-Host "TESTING Chocolatey installation" -ForegroundColor Magenta
-	$TestChoco = powershell choco -v
+	$TestChoco = &choco -v
 	if(-not($TestChoco)) {
         Write-Host "NOT EXIST Chocolatey installation" -ForegroundColor Magenta
         Write-Host "Installing Chocolatey" -ForegroundColor Magenta
@@ -209,7 +209,7 @@ if(-not($restarted)){
 	Print-Block
 
 	Write-Host "Installing WSL" -ForegroundColor Magenta
-	$TestWsl = powershell wsl -l
+	$TestWsl = &wsl -l
 	if(-not($TestWsl)) {
 		
         Write-Host "NOT EXIST WSL installation" -ForegroundColor Magenta
@@ -230,9 +230,9 @@ if(-not($restarted)){
 
 	Write-Host "Installing Docker" -ForegroundColor Magenta
 	Write-Host "TESTING Docker installation" -ForegroundColor Magenta
-	$TestDocker = powershell docker -v
-	$TestDockerCompose = powershell docker-compose -v
-	if(-not($TestDocker) -or (-not($TestDockerCompose))) {
+	$TestDocker = &docker -v
+	$TestDockerCompose = &docker-compose -v
+	if((-not($TestDocker)) -or (-not($TestDockerCompose))) {
         Write-Host "NOT EXIST Docker installation" -ForegroundColor Magenta
         Write-Host "Installing Docker" -ForegroundColor Magenta
 		choco install docker-desktop -y
@@ -245,7 +245,7 @@ if(-not($restarted)){
 	Print-Block
 	Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
 	Write-Host "TESTING Visual Studio Code installation" -ForegroundColor Magenta
-	$TestVSCode = powershell code -v
+	$TestVSCode = &code -v
 	if(-not($TestVSCode)) {
         Write-Host "NOT EXIST Visual Studio Code installation" -ForegroundColor Magenta
         Write-Host "Installing Visual Studio Code" -ForegroundColor Magenta
@@ -263,7 +263,7 @@ if(-not($restarted)){
 
 	Write-Host "Installing Git" -ForegroundColor Magenta
 	Write-Host "TESTING Git installation" -ForegroundColor Magenta
-	$TestGit = powershell git --version
+	$TestGit = &git --version
 	if(-not($TestGit)) {
         Write-Host "NOT EXIST Git installation" -ForegroundColor Magenta
         Write-Host "Installing Git" -ForegroundColor Magenta
@@ -276,7 +276,7 @@ if(-not($restarted)){
 	}
 	Remove-Variable TestGit
 	Print-Block
-    if(-not($TestDocker) -or (-not($TestDockerCompose))) {
+    if((-not($TestDocker)) -or (-not($TestDockerCompose))) {
 	    Restart-Machine
 		Remove-Variable TestDocker
 		Remove-Variable TestDockerCompose
@@ -326,9 +326,9 @@ Set-Location $ProjectRepoBackFolder
 
 ## Clone back repository and add Post-Commit Hook
 Write-Host "Starting git from back project"
-git init
+&git init
 Write-Host "Pulling repository"
-git pull "$ProjectBackRepositoryPath" > git_out.log 2>&1
+&git pull "$ProjectBackRepositoryPath" > git_out.log 2>&1
 Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoBackFolder/.git/hooks"
 Print-Block
 
@@ -336,17 +336,16 @@ Set-Location $ProjectRepoFrontFolder
 
 ## Clone back repository and add Post-Commit Hook
 Write-Host "Starting git from front project"
-git init
+&git init
 Write-Host "Pulling repository"
-git pull "$ProjectFrontRepositoryPath" > git_out.log 2>&1
+&git pull "$ProjectFrontRepositoryPath" > git_out.log 2>&1
 Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFrontFolder/.git/hooks"
 Print-Block
 
 ## Launching containers
 Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
 Set-Location $BaseFolder
-docker-compose up -d
-
+&docker-compose up -d
 # Check if jenkins is running
 Wait-JenkinsUp $JenkinsTimeBetweenTries $JenkinsStartCheckMaxTries
 # Create the pipeline
