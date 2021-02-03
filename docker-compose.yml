@@ -109,7 +109,20 @@ services:
         volumes:
             - .\docker_volumes\postgres_sock:/var/run/postgres/postgres.sock
             - .\docker_volumes\postgres_database:/var/lib/postgresql/data
-
+    nginxserverdevoss:
+        container_name: nginxserverdevoss
+        image: nginx:latest
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - .\docker_volumes\project_git_repo\nginx\conf.d:/etc/nginx/conf.d
+        networks:
+            devossnet:
+                ipv4_address: 10.0.0.4  
+                aliases:
+                    - "nginxserver.devossteam.com"
     
 networks:
     devossnet:
