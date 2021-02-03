@@ -342,9 +342,6 @@ git pull "$ProjectFrontRepositoryPath" > git_out.log 2>&1
 Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFrontFolder/.git/hooks"
 Print-Block
 
-Write-Host "Preparing Docker springboot project image" -ForegroundColor Magenta
-docker build -t adoptopenjdk/maven-openjdk11:latest -f "$BaseFolder/docker_volumes/project_git_repo/Dockerfile" .
-
 ## Launching containers
 Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
 Set-Location $BaseFolder
