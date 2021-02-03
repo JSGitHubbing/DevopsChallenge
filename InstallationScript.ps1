@@ -9,7 +9,7 @@ $global:ProjectNginxFolder = "$VolumesFolder/project_git_repo/nginx/conf.d"
 $global:ConfigResourcesFolder = "$BaseFolder/config_resources"
 $global:InstallationFolder = "$BaseFolder/devops-repository"
 $global:ConfigurationFile = "$ConfigResourcesFolder/installation.config"
-$global:ServerNginxConfigContent = "server { listen 80; location / { proxy_pass http://10.0.0.7:9009; } }"
+$global:ServerNginxConfigContent = ''
 
 function Refresh-Paths {
     param ($NewBaseFolder)
@@ -22,7 +22,7 @@ function Refresh-Paths {
 	Set-Variable -Name "ProjectNginxFolder" -Value "$VolumesFolder/project_git_repo/nginx/conf.d" -Scope Global
     Set-Variable -Name "ConfigResourcesFolder" -Value "$BaseFolder/config_resources" -Scope Global
     Set-Variable -Name "ConfigurationFile" -Value "$ConfigResourcesFolder/installation.config" -Scope Global
-	Set-Variable -Name "ServerNginxConfigContent" -Value "server { listen 8008; location / { proxy_pass http://localhost:8008/; } }" -Scope Global
+	Set-Variable -Name "ServerNginxConfigContent" -Value '' -Scope Global
 }
 
 function Print-Block {
@@ -363,6 +363,8 @@ Wait-SonarqubeUp $SonarTimeBetweenTries $SonarStartCheckMaxTries
 Start-Process 'http://host.docker.internal:8081/'
 # Launching Sonar instance on a browser
 Start-Process 'http://host.docker.internal:8082/'
+# Launching APP-FRONT instance on a browser
+Start-Process 'http://host.docker.internal/'
 
 Set-Location $InitFolder
 Write-Host "Script Finished" -ForegroundColor Green
