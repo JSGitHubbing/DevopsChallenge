@@ -8,9 +8,6 @@ services:
         image: devops_jenkins
         ports:
             - "8081:8080"
-        links: 
-            - sonarqubedevoss
-            - postgres-db-devoss
         dns_search:
           - jenkins.devossteam.com  
         environment:
@@ -38,8 +35,6 @@ services:
                 ipv4_address: 10.0.0.3  
                 aliases:
                     - "sonar.devossteam.com"
-        links: 
-            - postgres-db-devoss
         dns_search:
           - sonar.devossteam.com   
         volumes:
