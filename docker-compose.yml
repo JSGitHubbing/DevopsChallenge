@@ -73,7 +73,7 @@ services:
     app-front-devoss:
         container_name: app-front-devoss
         restart: always
-        image: app-front-devoss
+        image: app-front
         ports:
           - "4200:4200"
         volumes:
