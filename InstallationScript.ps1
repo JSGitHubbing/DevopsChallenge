@@ -342,6 +342,8 @@ Write-Host "Pulling repository"
 Copy-Item -Path "$ConfigResourcesFolder/post-commit" -Destination "$ProjectRepoFrontFolder/.git/hooks"
 Print-Block
 
+docker build -t app-front-devoss .
+
 ## Launching containers
 Write-Host "Launching Docker-Compose" -ForegroundColor Magenta
 Set-Location $BaseFolder
