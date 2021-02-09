@@ -73,8 +73,7 @@ services:
     app-front-devoss:
         container_name: app-front-devoss
         restart: always
-        build: .\docker_volumes\project_git_repo\app\front
-        working_dir: /docker_volumes/project_git_repo/app/front
+        image: app-front-devoss
         ports:
           - "4200:4200"
         volumes:
